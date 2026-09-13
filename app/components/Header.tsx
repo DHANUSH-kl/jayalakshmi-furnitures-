@@ -13,11 +13,30 @@ import {
   Clock,
   ChevronRight,
   X,
-  Menu
+  Menu,
+  ArrowLeft,
+  LayoutGrid,
+  Truck,
+  Sparkles
 } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
-import { NAV_CATEGORIES, MEGA_MENUS, FEATURED_PRODUCTS } from "@/data/furnitureData";
+import { NAV_CATEGORIES, MEGA_MENUS, FEATURED_PRODUCTS, STORE_INFO } from "@/data/furnitureData";
 import { MegaMenu } from "./MegaMenu";
+
+const MOBILE_TABS = ["All", "Living", "Bedroom", "Dining", "Mattress", "Storage"];
+
+const DRAWER_CATEGORIES = [
+  { name: "Sofas", image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&auto=format&fit=crop&q=80", category: "Living" },
+  { name: "Living", image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&auto=format&fit=crop&q=80", category: "Living" },
+  { name: "Bedroom", image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=400&auto=format&fit=crop&q=80", category: "Bedroom" },
+  { name: "Mattress", image: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&auto=format&fit=crop&q=80", category: "Mattress" },
+  { name: "Dining", image: "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=400&auto=format&fit=crop&q=80", category: "Dining" },
+  { name: "Storage", image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400&auto=format&fit=crop&q=80", category: "Living" },
+  { name: "Study & Office", image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=400&auto=format&fit=crop&q=80", category: "Living" },
+  { name: "Outdoor", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&auto=format&fit=crop&q=80", category: "Living" },
+  { name: "Decor & Furnishing", image: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=400&auto=format&fit=crop&q=80", category: "Decor" },
+  { name: "Lamps and Lighting", image: "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=400&auto=format&fit=crop&q=80", category: "Decor" }
+];
 
 export const Header: React.FC = () => {
   const {
@@ -27,12 +46,14 @@ export const Header: React.FC = () => {
     setIsShowroomModalOpen,
     searchQuery,
     setSearchQuery,
-    setQuickViewProduct
+    setQuickViewProduct,
+    activeCategoryFilter,
+    setActiveCategoryFilter
   } = useStore();
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   // Search filter
@@ -54,10 +75,24 @@ export const Header: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleMobileTabClick = (tab: string) => {
+    setActiveCategoryFilter(tab);
+    const el = document.getElementById("category-grid-section");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleDrawerCategoryClick = (cat: string) => {
+    setActiveCategoryFilter(cat);
+    setIsMobileDrawerOpen(false);
+    const el = document.getElementById("category-grid-section");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <header style={{ width: "100%", position: "sticky", top: 0, zIndex: 1000, background: "#ffffff", boxShadow: "0 1px 0 rgba(0,0,0,0.06)" }}>
-      {/* Top Announcement Bar */}
+      {/* Top Announcement Bar - Clean Desktop/Tablet */}
       <div
+        className="top-announcement-bar"
         style={{
           background: "#fafafa",
           color: "#555555",
@@ -76,18 +111,18 @@ export const Header: React.FC = () => {
             gap: "8px"
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", color: "#333", fontWeight: 500 }}>
               <MapPin size={13} color="#e26a2c" /> Kushalnagar Store: BM Road, Kodagu
             </span>
-            <span className="desktop-only" style={{ display: "inline-flex", alignItems: "center", gap: "5px", color: "#666" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", color: "#666" }}>
               <Clock size={13} /> 9:30 AM - 9:00 PM
             </span>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-            <span className="desktop-only" style={{ color: "#555" }}>
-              Free Direct Delivery in Kushalnagar & Coorg
+            <span style={{ color: "#555" }}>
+              Free Direct Delivery across Kushalnagar & Coorg
             </span>
             <a
               href="tel:+918105922089"
@@ -105,23 +140,19 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Header Row */}
-      <div
-        style={{
-          padding: "16px 0",
-          background: "#ffffff"
-        }}
-      >
+      {/* ==================== DESKTOP MAIN HEADER (>992px) ==================== */}
+      {/* STRICTLY NO HAMBURGER ICON ON LAPTOP/DESKTOP */}
+      <div className="desktop-header-wrap" style={{ padding: "18px 0", background: "#ffffff" }}>
         <div
           className="container"
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: "16px"
+            gap: "36px"
           }}
         >
-          {/* Brand Logo in Roboto */}
+          {/* Brand Logo */}
           <Link
             href="/"
             style={{
@@ -132,48 +163,33 @@ export const Header: React.FC = () => {
             }}
           >
             <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
-              <span
-                style={{
-                  fontSize: "24px",
-                  fontWeight: 700,
-                  color: "#1f1f1f",
-                  letterSpacing: "-0.4px"
-                }}
-              >
+              <span style={{ fontSize: "26px", fontWeight: 700, color: "#1f1f1f", letterSpacing: "-0.4px" }}>
                 Jayalakshmi
               </span>
-              <span
-                style={{
-                  fontSize: "24px",
-                  fontWeight: 400,
-                  color: "#e26a2c",
-                  letterSpacing: "-0.4px"
-                }}
-              >
+              <span style={{ fontSize: "26px", fontWeight: 400, color: "#e26a2c", letterSpacing: "-0.4px" }}>
                 Furniture
               </span>
             </div>
             <div
               style={{
-                fontSize: "9.5px",
+                fontSize: "10px",
                 fontWeight: 500,
-                letterSpacing: "2.2px",
+                letterSpacing: "2.4px",
                 textTransform: "uppercase",
                 color: "#888888",
-                marginTop: "1px"
+                marginTop: "2px"
               }}
             >
               Kushalnagar • Est. 1998
             </div>
           </Link>
 
-          {/* Desktop Search Bar */}
+          {/* Center Search Bar */}
           <div
             ref={searchRef}
-            className="desktop-search-bar"
             style={{
               flex: "1",
-              maxWidth: "560px",
+              maxWidth: "580px",
               position: "relative"
             }}
           >
@@ -183,7 +199,7 @@ export const Header: React.FC = () => {
                 alignItems: "center",
                 border: isSearchFocused ? "1.5px solid #e26a2c" : "1.5px solid #e0e0e0",
                 borderRadius: "6px",
-                padding: "9px 16px",
+                padding: "10px 18px",
                 background: "#ffffff",
                 transition: "border-color 0.2s ease"
               }}
@@ -206,28 +222,15 @@ export const Header: React.FC = () => {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  style={{
-                    color: "#999",
-                    marginRight: "6px",
-                    display: "flex",
-                    alignItems: "center"
-                  }}
+                  style={{ color: "#999", marginRight: "8px", display: "flex", alignItems: "center" }}
                 >
                   <X size={15} />
                 </button>
               )}
-              <button
-                style={{
-                  color: "#444444",
-                  display: "flex",
-                  alignItems: "center"
-                }}
-              >
-                <Search size={18} strokeWidth={1.8} />
-              </button>
+              <Search size={18} strokeWidth={1.8} color="#444" />
             </div>
 
-            {/* Live Search Recommendations */}
+            {/* Live Autocomplete Dropdown */}
             {isSearchFocused && searchQuery.trim().length > 0 && (
               <div
                 style={{
@@ -249,7 +252,7 @@ export const Header: React.FC = () => {
                   <div>
                     <div
                       style={{
-                        padding: "10px 16px",
+                        padding: "12px 18px",
                         fontSize: "11px",
                         fontWeight: 700,
                         color: "#888",
@@ -270,8 +273,8 @@ export const Header: React.FC = () => {
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: "12px",
-                          padding: "10px 16px",
+                          gap: "14px",
+                          padding: "12px 18px",
                           cursor: "pointer",
                           borderBottom: "1px solid #f8f8f8"
                         }}
@@ -279,22 +282,22 @@ export const Header: React.FC = () => {
                         <img
                           src={p.image}
                           alt={p.name}
-                          style={{ width: "38px", height: "38px", objectFit: "cover", borderRadius: "4px" }}
+                          style={{ width: "42px", height: "42px", objectFit: "cover", borderRadius: "4px" }}
                         />
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: "13px", fontWeight: 500, color: "#222" }}>
+                          <div style={{ fontSize: "13.5px", fontWeight: 500, color: "#222" }}>
                             {p.name}
                           </div>
-                          <div style={{ fontSize: "11px", color: "#777" }}>
+                          <div style={{ fontSize: "11.5px", color: "#777" }}>
                             {p.material} • ₹{p.price.toLocaleString("en-IN")}
                           </div>
                         </div>
-                        <ChevronRight size={15} color="#bbb" />
+                        <ChevronRight size={16} color="#bbb" />
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div style={{ padding: "20px", textAlign: "center", color: "#888", fontSize: "13px" }}>
+                  <div style={{ padding: "24px", textAlign: "center", color: "#888", fontSize: "13px" }}>
                     No furniture found matching &quot;{searchQuery}&quot;.
                   </div>
                 )}
@@ -302,68 +305,37 @@ export const Header: React.FC = () => {
             )}
           </div>
 
-          {/* Action Icons */}
-          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            {/* Store / Kushalnagar */}
+          {/* Desktop Right Action Icons: Stores, Profile, Wishlist, Cart */}
+          <div style={{ display: "flex", alignItems: "center", gap: "28px" }}>
             <button
               onClick={() => setIsShowroomModalOpen(true)}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "2px",
-                color: "#444444"
-              }}
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", color: "#444" }}
             >
               <Store size={20} strokeWidth={1.6} />
-              <span className="desktop-only" style={{ fontSize: "11px", fontWeight: 500 }}>Stores</span>
+              <span style={{ fontSize: "11.5px", fontWeight: 500 }}>Stores</span>
             </button>
 
-            {/* Profile - desktop only */}
             <button
-              className="desktop-only"
               onClick={() => alert("Welcome to Jayalakshmi Furniture Kushalnagar.")}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "2px",
-                color: "#444444"
-              }}
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", color: "#444" }}
             >
               <User size={20} strokeWidth={1.6} />
-              <span style={{ fontSize: "11px", fontWeight: 500 }}>Profile</span>
+              <span style={{ fontSize: "11.5px", fontWeight: 500 }}>Profile</span>
             </button>
 
-            {/* Wishlist */}
             <button
               onClick={() => setIsCartOpen(true)}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "2px",
-                color: "#444444",
-                position: "relative"
-              }}
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", color: "#444" }}
             >
               <Heart size={20} strokeWidth={1.6} />
-              <span className="desktop-only" style={{ fontSize: "11px", fontWeight: 500 }}>
+              <span style={{ fontSize: "11.5px", fontWeight: 500 }}>
                 Wishlist ({wishlist.length})
               </span>
             </button>
 
-            {/* Cart */}
             <button
               onClick={() => setIsCartOpen(true)}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "2px",
-                color: "#444444",
-                position: "relative"
-              }}
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", color: "#444" }}
             >
               <div style={{ position: "relative" }}>
                 <ShoppingCart size={20} strokeWidth={1.6} />
@@ -389,29 +361,173 @@ export const Header: React.FC = () => {
                   </span>
                 )}
               </div>
-              <span className="desktop-only" style={{ fontSize: "11px", fontWeight: 500 }}>
+              <span style={{ fontSize: "11.5px", fontWeight: 500 }}>
                 Cart ({totalCartCount})
               </span>
             </button>
+          </div>
+        </div>
+      </div>
 
-            {/* Mobile Menu Hamburger */}
+      {/* Desktop Horizontal Category Bar (>992px) */}
+      <nav
+        className="desktop-category-bar"
+        style={{
+          borderTop: "1px solid #f0f0f0",
+          borderBottom: "1px solid #eaeaea",
+          background: "#ffffff",
+          position: "relative"
+        }}
+        onMouseLeave={() => setActiveMenu(null)}
+      >
+        <div className="container">
+          <ul
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              listStyle: "none",
+              margin: 0,
+              padding: 0,
+              overflowX: "auto",
+              whiteSpace: "nowrap"
+            }}
+          >
+            {NAV_CATEGORIES.map((cat) => {
+              const isNew = cat === "New Arrivals";
+              const isActive = activeMenu === cat;
+
+              return (
+                <li
+                  key={cat}
+                  onMouseEnter={() => {
+                    if (MEGA_MENUS[cat]) {
+                      setActiveMenu(cat);
+                    } else {
+                      setActiveMenu(null);
+                    }
+                  }}
+                  style={{
+                    position: "relative",
+                    padding: "16px 12px",
+                    cursor: "pointer"
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "13.5px",
+                      fontWeight: isActive ? 600 : 400,
+                      color: isNew ? "#e26a2c" : isActive ? "#e26a2c" : "#333333",
+                      transition: "color 0.15s ease",
+                      borderBottom: isActive ? "2px solid #e26a2c" : "2px solid transparent",
+                      paddingBottom: "14px"
+                    }}
+                  >
+                    {cat}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {/* Desktop Mega Menu Dropdown */}
+        {activeMenu && MEGA_MENUS[activeMenu] && (
+          <MegaMenu
+            category={MEGA_MENUS[activeMenu]}
+            onClose={() => setActiveMenu(null)}
+          />
+        )}
+      </nav>
+
+      {/* ==================== MOBILE HEADER (<=992px) MATCHING SCREENSHOT 1 ==================== */}
+      <div className="mobile-header-wrap">
+        {/* Row 1: Hamburger Menu, Logo, Wishlist, Cart */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "12px 16px",
+            background: "#ffffff"
+          }}
+        >
+          {/* Mobile Hamburger on the Left */}
+          <button
+            onClick={() => setIsMobileDrawerOpen(true)}
+            aria-label="Open mobile menu"
+            style={{
+              color: "#333333",
+              display: "flex",
+              alignItems: "center",
+              padding: "4px",
+              marginRight: "8px"
+            }}
+          >
+            <Menu size={24} strokeWidth={2} />
+          </button>
+
+          {/* Logo Center */}
+          <Link
+            href="/"
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: "3px",
+              textDecoration: "none"
+            }}
+          >
+            <span style={{ fontSize: "20px", fontWeight: 700, color: "#1f1f1f" }}>
+              Jayalakshmi
+            </span>
+            <span style={{ fontSize: "20px", fontWeight: 400, color: "#e26a2c" }}>
+              Furniture
+            </span>
+          </Link>
+
+          {/* Right Actions: Wishlist & Cart */}
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <button
-              className="mobile-only-btn"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              style={{
-                color: "#333333",
-                display: "flex",
-                alignItems: "center",
-                padding: "4px"
-              }}
+              onClick={() => setIsCartOpen(true)}
+              aria-label="Wishlist"
+              style={{ color: "#333", display: "flex", alignItems: "center" }}
             >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              <Heart size={21} strokeWidth={1.8} />
+            </button>
+
+            <button
+              onClick={() => setIsCartOpen(true)}
+              aria-label="Cart"
+              style={{ color: "#333", display: "flex", alignItems: "center", position: "relative" }}
+            >
+              <ShoppingCart size={21} strokeWidth={1.8} />
+              {totalCartCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-6px",
+                    right: "-8px",
+                    background: "#e26a2c",
+                    color: "#fff",
+                    fontSize: "9px",
+                    fontWeight: 700,
+                    width: "15px",
+                    height: "15px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                >
+                  {totalCartCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Mobile Search Bar - full width below logo */}
-        <div className="mobile-search-bar container" style={{ marginTop: "12px" }}>
+        {/* Row 2: Full Width Mobile Search Bar (matching Screenshot 1) */}
+        <div style={{ padding: "0 16px 10px 16px" }}>
           <div
             style={{
               display: "flex",
@@ -424,7 +540,7 @@ export const Header: React.FC = () => {
           >
             <input
               type="text"
-              placeholder="Search furniture in Kushalnagar..."
+              placeholder="Search Products, Color & More..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -441,201 +557,340 @@ export const Header: React.FC = () => {
                 <X size={15} />
               </button>
             )}
-            <Search size={17} strokeWidth={1.8} color="#555" />
+            <Search size={18} strokeWidth={1.8} color="#444" />
           </div>
         </div>
-      </div>
 
-      {/* Horizontal Category Navigation Bar - Smooth Scroll on Mobile */}
-      <nav
-        style={{
-          borderTop: "1px solid #f0f0f0",
-          borderBottom: "1px solid #eaeaea",
-          background: "#ffffff",
-          position: "relative"
-        }}
-        onMouseLeave={() => setActiveMenu(null)}
-      >
-        <div className="container">
-          <ul
-            className="mobile-cat-scroll"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              listStyle: "none",
-              margin: 0,
-              padding: 0,
-              overflowX: "auto",
-              whiteSpace: "nowrap",
-              WebkitOverflowScrolling: "touch"
-            }}
-          >
-            {NAV_CATEGORIES.map((cat) => {
-              const isNew = cat === "New Arrivals";
-              const isActive = activeMenu === cat;
-
-              return (
-                <li
-                  key={cat}
-                  onMouseEnter={() => {
-                    if (MEGA_MENUS[cat] && window.innerWidth > 992) {
-                      setActiveMenu(cat);
-                    } else {
-                      setActiveMenu(null);
-                    }
-                  }}
-                  onClick={() => {
-                    const el = document.getElementById("category-grid-section");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  style={{
-                    position: "relative",
-                    padding: "14px 12px",
-                    cursor: "pointer",
-                    flexShrink: 0
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "13.5px",
-                      fontWeight: isActive ? 600 : 400,
-                      color: isNew
-                        ? "#e26a2c"
-                        : isActive
-                        ? "#e26a2c"
-                        : "#333333",
-                      transition: "color 0.15s ease",
-                      borderBottom: isActive ? "2px solid #e26a2c" : "2px solid transparent",
-                      paddingBottom: "12px"
-                    }}
-                  >
-                    {cat}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-
-        {/* Hover Mega Menu Dropdown for Desktop */}
-        {activeMenu && MEGA_MENUS[activeMenu] && (
-          <div className="desktop-only-block">
-            <MegaMenu
-              category={MEGA_MENUS[activeMenu]}
-              onClose={() => setActiveMenu(null)}
-            />
-          </div>
-        )}
-      </nav>
-
-      {/* Mobile Drawer Menu when hamburger is clicked */}
-      {isMobileMenuOpen && (
+        {/* Row 3: Horizontal Scroll Tabs matching Screenshot 1 (All, Living, Bedroom, Dining, Mattress... + Grid icon) */}
         <div
           style={{
-            position: "fixed",
-            top: "120px",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 999
+            display: "flex",
+            alignItems: "center",
+            borderBottom: "1px solid #eeeeee",
+            padding: "0 16px"
           }}
-          onClick={() => setIsMobileMenuOpen(false)}
         >
           <div
             style={{
-              width: "80%",
-              maxWidth: "320px",
+              display: "flex",
+              gap: "22px",
+              overflowX: "auto",
+              whiteSpace: "nowrap",
+              flex: 1,
+              scrollbarWidth: "none"
+            }}
+            className="mobile-tab-strip"
+          >
+            {MOBILE_TABS.map((tab) => {
+              const isSelected = activeCategoryFilter.toLowerCase() === tab.toLowerCase();
+
+              return (
+                <button
+                  key={tab}
+                  onClick={() => handleMobileTabClick(tab)}
+                  style={{
+                    padding: "10px 0",
+                    fontSize: "13.5px",
+                    fontWeight: isSelected ? 500 : 400,
+                    color: isSelected ? "#e26a2c" : "#444444",
+                    borderBottom: isSelected ? "2.5px solid #e26a2c" : "2.5px solid transparent",
+                    flexShrink: 0
+                  }}
+                >
+                  {tab}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Grid View Icon on far right (opens drawer/all categories) */}
+          <button
+            onClick={() => setIsMobileDrawerOpen(true)}
+            aria-label="View all categories"
+            style={{
+              color: "#555",
+              padding: "8px 0 8px 12px",
+              display: "flex",
+              alignItems: "center",
+              borderLeft: "1px solid #f0f0f0",
+              marginLeft: "8px"
+            }}
+          >
+            <LayoutGrid size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* ==================== MOBILE DRAWER VIEW MATCHING SCREENSHOT 2 ==================== */}
+      {isMobileDrawerOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(0,0,0,0.5)",
+            animation: "fadeIn 0.2s ease"
+          }}
+          onClick={() => setIsMobileDrawerOpen(false)}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "420px",
               height: "100%",
               background: "#ffffff",
-              padding: "24px",
-              overflowY: "auto"
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: "4px 0 20px rgba(0,0,0,0.15)"
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#1f1f1f", marginBottom: "16px" }}>
-              Explore Categories
-            </h3>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-              {NAV_CATEGORIES.map((cat) => (
-                <li key={cat}>
-                  <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      const el = document.getElementById("category-grid-section");
-                      if (el) el.scrollIntoView({ behavior: "smooth" });
-                    }}
+            {/* Drawer Top Header: Back Arrow, Brand, Login/Signup */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "16px 20px",
+                borderBottom: "1px solid #eeeeee",
+                background: "#ffffff",
+                position: "sticky",
+                top: 0,
+                zIndex: 10
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <button
+                  onClick={() => setIsMobileDrawerOpen(false)}
+                  style={{ color: "#333", display: "flex", alignItems: "center" }}
+                >
+                  <ArrowLeft size={22} strokeWidth={2} />
+                </button>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "2px" }}>
+                  <span style={{ fontSize: "19px", fontWeight: 700, color: "#1f1f1f" }}>
+                    Jayalakshmi
+                  </span>
+                  <span style={{ fontSize: "19px", fontWeight: 400, color: "#e26a2c" }}>
+                    Furniture
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  alert("Customer Portal - Jayalakshmi Furniture Kushalnagar");
+                  setIsMobileDrawerOpen(false);
+                }}
+                style={{
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "#333333"
+                }}
+              >
+                Login / Signup
+              </button>
+            </div>
+
+            <div style={{ padding: "16px 18px", flex: 1 }}>
+              {/* Kushalnagar Store Card Banner (matching Screenshot 2 top card) */}
+              <div
+                onClick={() => {
+                  setIsMobileDrawerOpen(false);
+                  setIsShowroomModalOpen(true);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  background: "#fff9f5",
+                  border: "1px solid #f2e2d5",
+                  borderRadius: "10px",
+                  padding: "14px 16px",
+                  marginBottom: "20px",
+                  cursor: "pointer"
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div
                     style={{
-                      fontSize: "14px",
-                      color: cat === "New Arrivals" ? "#e26a2c" : "#333",
-                      fontWeight: cat === "New Arrivals" ? 700 : 400,
-                      width: "100%",
-                      textAlign: "left",
-                      padding: "6px 0"
+                      width: "38px",
+                      height: "38px",
+                      borderRadius: "8px",
+                      background: "#ffffff",
+                      border: "1px solid #eeddd0",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#e26a2c"
                     }}
                   >
-                    {cat}
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    <Store size={20} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "13.5px", fontWeight: 600, color: "#d25a20" }}>
+                      Find Your Perfect Furniture
+                    </div>
+                    <div style={{ fontSize: "11.5px", color: "#666" }}>
+                      On Visiting Kushalnagar Store (BM Road)
+                    </div>
+                  </div>
+                </div>
+                <ChevronRight size={18} color="#999" />
+              </div>
 
-            <div style={{ marginTop: "28px", paddingTop: "20px", borderTop: "1px solid #eee" }}>
-              <div style={{ fontSize: "12px", color: "#888", marginBottom: "6px" }}>
-                Kushalnagar Flagship Showroom
-              </div>
-              <div style={{ fontSize: "14px", fontWeight: 600, color: "#222", marginBottom: "4px" }}>
-                BM Road, Kodagu
-              </div>
-              <a
-                href="tel:+918105922089"
-                style={{ fontSize: "13px", color: "#e26a2c", fontWeight: 600, display: "inline-block", marginTop: "4px" }}
+              {/* 2-Column Grid of Categories (Matching Screenshot 2) */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                  marginBottom: "24px"
+                }}
               >
-                Call: +91 81059 22089
-              </a>
+                {DRAWER_CATEGORIES.map((item, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => handleDrawerCategoryClick(item.category)}
+                    style={{
+                      background: "#ffffff",
+                      border: "1px solid #eaeaea",
+                      borderRadius: "8px",
+                      padding: "10px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      cursor: "pointer",
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.02)"
+                    }}
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      style={{
+                        width: "48px",
+                        height: "44px",
+                        objectFit: "cover",
+                        borderRadius: "6px",
+                        backgroundColor: "#f5f5f5",
+                        flexShrink: 0
+                      }}
+                    />
+                    <span style={{ fontSize: "12.5px", fontWeight: 500, color: "#222" }}>
+                      {item.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bottom List Items: New Arrivals, Track Order, Stores */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", borderTop: "1px solid #f0f0f0", paddingTop: "14px" }}>
+                <div
+                  onClick={() => {
+                    handleDrawerCategoryClick("All");
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "10px 4px",
+                    cursor: "pointer"
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      borderRadius: "50%",
+                      border: "1px solid #333",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "9px",
+                      fontWeight: 700
+                    }}
+                  >
+                    NEW
+                  </div>
+                  <span style={{ fontSize: "13.5px", fontWeight: 500, color: "#222" }}>New Arrivals</span>
+                  <span
+                    style={{
+                      background: "#e26a2c",
+                      color: "#fff",
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      padding: "2px 6px",
+                      borderRadius: "4px",
+                      marginLeft: "4px"
+                    }}
+                  >
+                    New
+                  </span>
+                </div>
+
+                <div
+                  onClick={() => {
+                    alert("To track your Kushalnagar order, please call +91 81059 22089");
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "10px 4px",
+                    cursor: "pointer"
+                  }}
+                >
+                  <Truck size={20} color="#333" />
+                  <span style={{ fontSize: "13.5px", fontWeight: 500, color: "#222" }}>Track Order</span>
+                </div>
+
+                <div
+                  onClick={() => {
+                    setIsMobileDrawerOpen(false);
+                    setIsShowroomModalOpen(true);
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "10px 4px",
+                    cursor: "pointer"
+                  }}
+                >
+                  <Store size={20} color="#333" />
+                  <span style={{ fontSize: "13.5px", fontWeight: 500, color: "#222" }}>Kushalnagar Stores</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       <style jsx>{`
-        .mobile-search-bar {
-          display: none;
-        }
-        .mobile-only-btn {
-          display: none;
-        }
-        .desktop-only-block {
+        /* Desktop: show desktop navbar, hide mobile navbar */
+        .desktop-header-wrap,
+        .desktop-category-bar,
+        .top-announcement-bar {
           display: block;
         }
-
-        @media (max-width: 992px) {
-          .desktop-search-bar {
-            display: none !important;
-          }
-          .mobile-search-bar {
-            display: block !important;
-          }
-          .desktop-only {
-            display: none !important;
-          }
-          .mobile-only-btn {
-            display: flex !important;
-          }
-          .desktop-only-block {
-            display: none !important;
-          }
-        }
-
-        /* Hide scrollbars for chrome, safari and opera */
-        .mobile-cat-scroll::-webkit-scrollbar {
+        .mobile-header-wrap {
           display: none;
         }
-        /* Hide scrollbar for IE, Edge and Firefox */
-        .mobile-cat-scroll {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
+
+        /* Mobile View (<= 992px) */
+        @media (max-width: 992px) {
+          .desktop-header-wrap,
+          .desktop-category-bar,
+          .top-announcement-bar {
+            display: none !important;
+          }
+          .mobile-header-wrap {
+            display: block !important;
+          }
+        }
+
+        .mobile-tab-strip::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
     </header>

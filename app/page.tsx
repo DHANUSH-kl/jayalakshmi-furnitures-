@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Preloader } from "./components/Preloader";
 import { Header } from "./components/Header";
+import { MobileCategorySection } from "./components/MobileCategorySection";
 import { HeroSection } from "./components/HeroSection";
 import { CategoryGrid } from "./components/CategoryGrid";
 import { FeaturesBanner } from "./components/FeaturesBanner";
@@ -15,29 +15,30 @@ import { FloatingWidgets } from "./components/FloatingWidgets";
 import { Footer } from "./components/Footer";
 
 export default function HomePage() {
-  const [isLoaded, setIsLoaded] = useState(false);
+  // Preloader completely removed as requested
+  const isLoaded = true;
 
   return (
     <main style={{ minHeight: "100vh", position: "relative" }}>
-      {/* Luxury Screen Loader - Plays first, then triggers Hero animation */}
-      <Preloader onLoaded={() => setIsLoaded(true)} />
-
-      {/* Main Store Layout */}
+      {/* Main Header & Navbar with responsive mobile/desktop views */}
       <Header />
 
-      {/* Hero Section matching Screenshot 1 */}
+      {/* Mobile-only 2-row category scroll matching Screenshot 1 */}
+      <MobileCategorySection />
+
+      {/* Hero Section matching reference */}
       <HeroSection isLoaded={isLoaded} />
 
-      {/* Category Grid Section matching Screenshot 4 */}
+      {/* Category Grid Section */}
       <CategoryGrid />
 
-      {/* Pure Wood Quality & Service Banner */}
+      {/* Quality & Trust Banner */}
       <FeaturesBanner />
 
       {/* Best Sellers in Kushalnagar */}
       <BestSellers />
 
-      {/* Kushalnagar Experience Showroom Feature */}
+      {/* Kushalnagar Experience Showroom Showcase */}
       <KushalnagarShowroom />
 
       {/* Footer */}
